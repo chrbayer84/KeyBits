@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/home/kiebitz/git/KeyBits/lib/bcpg-jdk15on-151.jar"/>
+	<classpathentry kind="lib" path="/home/kiebitz/git/KeyBits/lib/bcprov-jdk15on-151.jar"/>
+	<classpathentry kind="lib" path="/home/kiebitz/git/KeyBits/lib/bitcoinj-0.11-bundled.jar"/>
+	<classpathentry kind="lib" path="/home/kiebitz/git/KeyBits/lib/commons-cli-1.2.jar"/>
+	<classpathentry kind="lib" path="/home/kiebitz/git/KeyBits/lib/json-simple-1.1.1.jar"/>
+	<classpathentry kind="lib" path="/home/kiebitz/git/KeyBits/lib/slf4j-jdk14-1.7.7.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
