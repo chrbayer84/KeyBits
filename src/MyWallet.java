@@ -10,15 +10,18 @@ import org.spongycastle.crypto.params.KeyParameter;
 
 import com.google.bitcoin.core.AbstractWalletEventListener;
 import com.google.bitcoin.core.Address;
+import com.google.bitcoin.core.Block;
 import com.google.bitcoin.core.BlockChain;
 import com.google.bitcoin.core.CheckpointManager;
 import com.google.bitcoin.core.ECKey;
 import com.google.bitcoin.core.NetworkParameters;
+import com.google.bitcoin.core.Peer;
 import com.google.bitcoin.core.PeerAddress;
 import com.google.bitcoin.core.PeerGroup;
 import com.google.bitcoin.core.Sha256Hash;
 import com.google.bitcoin.core.Transaction;
 import com.google.bitcoin.core.TransactionConfidence;
+import com.google.bitcoin.core.TransactionOutput;
 import com.google.bitcoin.core.Wallet;
 import com.google.bitcoin.core.Wallet.SendRequest;
 import com.google.bitcoin.core.Wallet.SendResult;
@@ -26,6 +29,7 @@ import com.google.bitcoin.crypto.KeyCrypterScrypt;
 import com.google.bitcoin.net.discovery.DnsDiscovery;
 import com.google.bitcoin.params.MainNetParams;
 import com.google.bitcoin.store.SPVBlockStore;
+import com.google.common.util.concurrent.ListenableFuture;
 
 public class MyWallet{
 	private String passphrase;
@@ -262,6 +266,38 @@ public class MyWallet{
 		this.peer_group.start();		
 	}
 	
+	public Block getBlockFromPeer(Sha256Hash block_hash) throws Exception{
+		this.updateWallet();
+		Peer peer = this.peer_group.getDownloadPeer();
+		Block block = peer.getBlock(block_hash).get();
+		
+		return block;
+	}
+	
+	public Transaction getTransactionFromBlock(Block block, Sha256Hash transaction_hash) throws Exception{
+		List<Transaction> list = block.getTransactions();
+		for (int i = 0; i < list.size(); i++){
+			Transaction transaction = list.get(i);
+			if (transaction.getHash().equals(transaction_hash))
+				return transaction;
+		}
+		
+		return null;
+	}
+	
+	public String[] getOutputAddressesFromTransaction(Transaction transaction) throws Exception{
+		List<TransactionOutput> list = transaction.getOutputs();
+		
+		// minus one because is the address for change
+		String[] ret = new String[list.size() - 1];
+		for (int i = 0; i < list.size() - 1; i++){
+			TransactionOutput output = list.get(i);
+			ret[i] = output.getScriptPubKey().getToAddress(this.getNetworkParameters()).toString();
+		}
+		
+		return ret;
+	}
+	
 	/**
 	 * Update wallet.
 	 * 
@@ -434,6 +470,25 @@ public class MyWallet{
 		wallet.closePeerGroup();
 		wallet.closeBlockStore();
 		wallet.closeWallet();
+	}
+	
+	
+	public static String[] getAddressesFromBlockAndTransaction(String wallet_file_name, String blockchain_file_name, String checkpoints_file_name, String block_hash, String transaction_hash) throws Exception{
+		MyWallet wallet = new MyWallet(wallet_file_name, blockchain_file_name, checkpoints_file_name, null);
+		
+		wallet.openWallet();
+		wallet.openBlockStore();
+		wallet.openPeerGroup();
+		
+		Block block = wallet.getBlockFromPeer(new Sha256Hash(block_hash));
+		Transaction transaction = wallet.getTransactionFromBlock(block, new Sha256Hash(transaction_hash));
+		String[] addresses = wallet.getOutputAddressesFromTransaction(transaction);
+		
+		wallet.closePeerGroup();
+		wallet.closeBlockStore();
+		wallet.closeWallet();
+		
+		return addresses;
 	}
 	
 	/**

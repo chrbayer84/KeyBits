@@ -65,7 +65,7 @@ public class KeyBits {
 		BasicParser parser = new BasicParser();
 		CommandLine cmd = null;
 		
-		String header = "This is KeyBits v0.01b.1412885051" + System.getProperty("line.separator");
+		String header = "This is KeyBits v0.01b.1412953962" + System.getProperty("line.separator");
 		// show help if wrong usage
 		try{
 			cmd = parser.parse(options, args);
@@ -221,7 +221,16 @@ public class KeyBits {
 		}
 		
 		if (cmd.hasOption("i")){
-			String[] addresses = BlockchainDotInfo.getKeys(cmd.getOptionValue("i"));
+			String location = cmd.getOptionValue("i");
+			
+			String[] addresses = null;
+			if (location.indexOf(",") > -1){
+				String[] locations = location.split(",");
+				addresses = MyWallet.getAddressesFromBlockAndTransaction("main.wallet", "main.wallet.chain", checkpoints_file_name, locations[0], locations[1]);
+			} else {
+				addresses = BlockchainDotInfo.getKeys(location);
+			}
+			
 			byte[] encoded = (new Encoding()).decodePublicKey(addresses);
 			PGPPublicKeyRing public_key_ring = gpg.getDecoded(encoded);
 			
